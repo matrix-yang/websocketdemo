@@ -28,7 +28,7 @@
 <!-- <input type="text" id="token" name="" value="" placeholder="" readonly="false"> -->
 </body>
 <script type="text/javascript">
-    var ws = new WebSocket("ws://127.0.0.1:3000/foo");
+    var ws = new WebSocket("ws://127.0.0.1:3000/bar");
     ws.onopen = function() {
         console.log("连接状态", ws);
         $("#show").html("连接状态;" + ws.readyState + "</br>");

@@ -1,24 +1,115 @@
-//https://github.com/websockets/ws/blob/master/doc/ws.md#new-wsserveroptions-callback  
-var WebSocketServer = require('ws').Server,
-    wss = new WebSocketServer({
-        port: 3000, //监听接口  
-        verifyClient: socketVerify //可选，验证连接函数  
-    });
+//https://github.com/websockets/ws/blob/master/doc/ws.md#new-wsserveroptions-callback
+const http = require('http');
+const WebSocket = require('ws');
 
-function socketVerify(info) {
-    //console.log(info);
-    console.log(info.origin);
-    console.log(info.req.t);
-    console.log(info.secure);
-    // console.log(info.origin);  
-    // var origin = info.origin.match(/^(:?.+\:\/\/)([^\/]+)/);  
-    //if (origin.length >= 3 && origin[2] == "blog.luojia.me") {  
-    //    return true; //如果是来自blog.luojia.me的连接，就接受  
-    //}  
-    // console.log("连接",origin[2]);  
-    return true; //否则拒绝  
-    //传入的info参数会包括这个连接的很多信息，你可以在此处使用console.log(info)来查看和选择如何验证连接  
-}
+const server = http.createServer();
+const wss1 = new WebSocket.Server({ noServer: true });
+const wss2 = new WebSocket.Server({ noServer: true });
+
+const http = require('http');
+const WebSocket = require('ws');
+
+const server = http.createServer();
+const wss1 = new WebSocket.Server({ noServer: true });
+const wss2 = new WebSocket.Server({ noServer: true });
+//广播
+wss1.broadcast = function broadcast(s,ws) {
+    // console.log(ws);
+    // debugger;
+    wss1.clients.forEach(function each(client) {
+        // if (typeof client.user != "undefined") {
+        if(s == 1){
+            client.send(ws.name + ":" + ws.msg);
+        }
+        if(s == 0){
+            client.send(ws + "退出聊天室");
+        }
+        // }
+    });
+};
+
+wss1.on('connection', function connection(ws) {
+    //console.log(ws.clients.session);
+    // console.log(wss.clients.size)
+    // console.log("在线人数", wss.clients.length);
+    ws.send('这是聊天室1，你是第' + wss.clients.size + '位');
+    // 发送消息
+    ws.on('message', function(jsonStr,flags) {
+        var obj = eval('(' + jsonStr + ')');
+        // console.log(obj);
+        this.user = obj;
+        if (typeof this.user.msg != "undefined") {
+            wss.broadcast(1,obj);
+        }
+    });
+    // 退出聊天
+    ws.on('close', function(close) {
+        try{
+            wss.broadcast(0,this.user.name);
+        }catch(e){
+            console.log('刷新页面了');
+        }
+    });
+});
+//广播
+wss2.broadcast = function broadcast(s,ws) {
+    // console.log(ws);
+    // debugger;
+    wss2.clients.forEach(function each(client) {
+        // if (typeof client.user != "undefined") {
+        if(s == 1){
+            client.send(ws.name + ":" + ws.msg);
+        }
+        if(s == 0){
+            client.send(ws + "退出聊天室");
+        }
+        // }
+    });
+};
+
+wss2.on('connection', function connection(ws) {
+    //console.log(ws.clients.session);
+    // console.log(wss.clients.size)
+    // console.log("在线人数", wss.clients.length);
+    ws.send('这是聊天室2，你是第' + wss.clients.size + '位');
+    // 发送消息
+    ws.on('message', function(jsonStr,flags) {
+        var obj = eval('(' + jsonStr + ')');
+        // console.log(obj);
+        this.user = obj;
+        if (typeof this.user.msg != "undefined") {
+            wss.broadcast(1,obj);
+        }
+    });
+    // 退出聊天
+    ws.on('close', function(close) {
+        try{
+            wss.broadcast(0,this.user.name);
+        }catch(e){
+            console.log('刷新页面了');
+        }
+    });
+});
+
+server.on('upgrade', function upgrade(request, socket, head) {
+    const pathname = url.parse(request.url).pathname;
+
+    if (pathname === '/foo') {
+        wss1.handleUpgrade(request, socket, head, function done(ws) {
+            wss1.emit('connection', ws);
+        });
+    } else if (pathname === '/bar') {
+        wss2.handleUpgrade(request, socket, head, function done(ws) {
+            wss2.emit('connection', ws);
+        });
+    } else {
+        socket.destroy();
+    }
+});
+
+server.listen(3000);
+
+
 //广播  
 wss.broadcast = function broadcast(s,ws) {
     // console.log(ws);  
